@@ -11,4 +11,5 @@ void brick_core_init(Brick brick);
 char brick_read_key(void);
 void brick_core_inloop(void);
 void brick_clear_screen(void);
-void brick_draw_rows(void);
+void brick_draw_rows(Brick_buffer *buf);
+void brick_clean_screen(void);

@@ -43,17 +43,35 @@ void brick_core_inloop(void)
 
 void brick_refresh_screen(void)
 {
-	write(STDOUT_FILENO, "\x1b[2J", 4);
-	write(STDOUT_FILENO, "\x1b[H", 3);
-	brick_draw_rows();
-	write(STDOUT_FILENO, "\x1b[H", 3);
+	Brick_buffer bufs = BUF_INIT;
+	buffer_append(&bufs, "\x1b[?25l", 6);
+	buffer_append(&bufs,"\x1b[2J", 4);
+	buffer_append(&bufs, "\x1b[H", 3);
+	brick_draw_rows(&bufs);
+	buffer_append(&bufs, "\x1b[H", 3);
+	buffer_append(&bufs, "\x1b[?25l", 6);
+	write(STDOUT_FILENO, bufs.buf, bufs.length);
+	buffer_free(&bufs);
 }
 
-void brick_draw_rows(void) 
+void brick_clean_screen(void)
+{
+	Brick_buffer bufs = BUF_INIT;
+	buffer_append(&bufs, "\x1b[?25l", 6);
+	buffer_append(&bufs,"\x1b[2J", 4);
+	buffer_append(&bufs, "\x1b[H", 3);
+	buffer_append(&bufs, "\x1b[H", 3);
+	buffer_append(&bufs, "\x1b[?25l", 6);
+	write(STDOUT_FILENO, bufs.buf, bufs.length);
+	buffer_free(&bufs);
+}
+
+void brick_draw_rows(Brick_buffer *bufs) 
 {
   int y;
   for (y = 0; y < brick_core_win.col; y++) {
-    write(STDOUT_FILENO, "~\r\n", 3);
+    buffer_append(bufs, "\r\n~", 3);
+	buffer_append(bufs, "\x1b[K", 3);
   }
 }
 

@@ -7,8 +7,26 @@
 #include <Brick_sys.h>
 #include <Brick_exit.h>
 
+Brick brick;
+
+int buffer_append(Brick_buffer *brick, char *buf, int length)
+{
+	char *new = realloc(brick->buf, brick->length+length);
+	if(new == NULL)
+		return -1;
+	memcpy(&new[brick->length],buf,length);
+	brick->buf = new;
+	brick->length += length;
+}
+
+int buffer_free(Brick_buffer *buffer)
+{
+	free(buffer->buf);
+}
+
 void terminos_raw_clear(void)
 {
+	brick_clean_screen();
 	if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &brick.org_term) == -1)
 		die("terminos_raw_clear:tcsetattr");
 }
