@@ -9,16 +9,16 @@ all:Bricks
 
 INCLUDE = ./include
 
-OUTPUT = ./build
+OUTPUT = ./Build
 
 ROOT_DIR = .
 ROOT_DIR_OBJ = $(patsubst $(ROOT_DIR)/%.c,$(ROOT_DIR)/%.o,$(wildcard $(ROOT_DIR)/*.c))
 
 Bricks:MAKEDIR $(ROOT_DIR_OBJ) Brick_core.o Brick_sys.o
-	$(CC)  $(OUTPUT)/*.o -o $(OUTPUT)/$(EXECUTABLE)
+	$(CC) $(OUTPUT)/*.o -o $(OUTPUT)/$(EXECUTABLE)
 
 MAKEDIR:
-	mkdir -p build 
+	mkdir -p Build 
 
 Brick_core.o: $(wildcard ./Brick_core/*.c)
 	$(CC) -I $(INCLUDE) -c $^ -o $(OUTPUT)/$@  

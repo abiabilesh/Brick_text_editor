@@ -26,7 +26,6 @@ int buffer_free(Brick_buffer *buffer)
 
 void terminos_raw_clear(void)
 {
-	brick_clean_screen();
 	if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &brick.org_term) == -1)
 		die("terminos_raw_clear:tcsetattr");
 }
