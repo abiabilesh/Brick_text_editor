@@ -3,15 +3,15 @@
 
 typedef struct Brick
 {
- struct termios org_term;
- int brick_row;
- int brick_column;
+	struct termios org_term;
+	int brick_row;
+	int brick_column;
 }Brick;
 
 typedef struct Brick_buffer
 {
-  char *buf;
-  int length;
+	char *buf;
+	int length;
 }Brick_buffer;
 
 void terminos_raw_clear(void);

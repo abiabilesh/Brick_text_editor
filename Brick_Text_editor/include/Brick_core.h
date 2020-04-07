@@ -1,10 +1,10 @@
 
 struct brick_win_size
 {
- int row;
- int col;
- int current_row;
- int current_column;
+	int row;
+	int col;
+	int current_row;
+	int current_column;
 };
 
 
