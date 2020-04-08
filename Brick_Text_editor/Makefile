@@ -20,10 +20,10 @@ Bricks:MAKEDIR $(ROOT_DIR_OBJ) Brick_core.o Brick_sys.o
 MAKEDIR:
 	mkdir -p Build 
 
-Brick_core.o: $(wildcard ./Brick_core/*.c)
+Brick_core.o: $(wildcard ./core/*.c)
 	$(CC) -I $(INCLUDE) -c $^ -o $(OUTPUT)/$@  
 
-Brick_sys.o: $(wildcard ./Brick_sys/*.c)
+Brick_sys.o: $(wildcard ./system/*.c)
 	$(CC) -I $(INCLUDE) -c $^ -o $(OUTPUT)/$@
 
 $(ROOT_DIR)/%.o: $(ROOT_DIR)/%.c
