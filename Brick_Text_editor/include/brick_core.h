@@ -1,6 +1,7 @@
 #ifndef brick_core
 #define brick_core
 
+#define BRICK_VERSION "0.1"
 #include <brick_init.h>
 
 typedef struct row_container
@@ -16,7 +17,9 @@ struct brick_win_size
 	int current_row;
 	int current_column;
 	int data_row;
-	row_container *container;
+        int row_off;
+	int col_off;
+        row_container *container;
 };
 
 void brick_core_init(Brick brick);

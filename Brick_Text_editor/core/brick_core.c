@@ -83,7 +83,9 @@ int brick_read_key(void)
 
 
 void brick_core_move(int arrow_movement)
-{
+{ 
+    row_container *row = (win.current_row >= win.data_row) ? NULL : &win.container[win.current_row];
+
     switch(arrow_movement)
     {
         case ARROW_UP:
@@ -92,8 +94,8 @@ void brick_core_move(int arrow_movement)
             break;
             
         case ARROW_DOWN:
-            if(win.current_row != win.row - 1)
-                win.current_row++;
+	    if(win.current_row < win.data_row)
+		win.current_row++;
             break;
             
         case ARROW_LEFT:
@@ -102,11 +104,16 @@ void brick_core_move(int arrow_movement)
             break;
             
         case ARROW_RIGHT:
-            if(win.current_column != win.col -1)
+            if(row && win.current_column < row->size)
                 win.current_column++;
             break;
     }    
-        
+    
+    row = (win.current_row >= win.data_row) ? NULL : &win.container[win.current_row];
+    int rowsize = row ? row->size : 0;
+    if(win.current_column >  rowsize){
+	win.current_column = rowsize ;
+    }
 }
 
 
@@ -114,8 +121,7 @@ void brick_core_inloop(void)
 {
     int c, tmp_rows;
     tmp_rows = win.row;
-    while(screen_loop_flag == 1);
-        c = brick_read_key();
+    c = brick_read_key();
     switch(c)
     {
         case CTRL_KEY('q'):
@@ -148,8 +154,26 @@ void brick_core_inloop(void)
     screen_loop_flag = 1; //brick screen thread will clear this bit 
 }
 
+void editor_scroll_row(void)
+{
+    if(win.current_row >= win.row_off + win.row){
+	win.row_off = win.current_row - win.row + 1 ;
+    }
+
+    if(win.current_row < win.row_off)
+	win.row_off = win.current_row;
+ 
+    if(win.current_column >= win.col_off + win.col){
+	win.col_off = win.current_column - win.col + 1 ;
+    }
+  
+    if(win.current_column < win.col_off)
+	win.col_off = win.current_column;
+}
+
 void brick_refresh_screen(void)
 {
+    editor_scroll_row();
     Brick_buffer bufs = BUF_INIT;
     buffer_append(&bufs, "\x1b[?25l", 6);     //hide the cursor
     buffer_append(&bufs, "\x1b[H", 3);        //move the cursor to start
@@ -157,7 +181,7 @@ void brick_refresh_screen(void)
     buffer_append(&bufs, "\x1b[H", 3);        //move the cursor to start
 
     char move[32];
-    snprintf(&move,sizeof(move),"\x1b[%d;%dH", (win.current_row + 1), (win.current_column + 1));
+    snprintf(&move,sizeof(move),"\x1b[%d;%dH", (win.current_row - win.row_off + 1), (win.current_column - win.col_off + 1));
     buffer_append(&bufs,move,strlen(move));
 
     buffer_append(&bufs, "\x1b[?25h", 6);     //show the cursor        
@@ -172,14 +196,33 @@ void brick_draw_rows(Brick_buffer *bufs)
     
     for (int y = 0; y < win.row; y++) 
     {
+        int filerow = y + win.row_off;
         buffer_append(bufs,"\x1b[K", 3); //clean the current line
-        if(y >= win.data_row)
-        {
-            buffer_append(bufs,"~", 1);
+        if(filerow >= win.data_row){
+	    if(win.data_row == 0 && y == win.row/3){
+	        char welcome[80];
+		int welcomelen = snprintf(welcome, sizeof(welcome),
+                "BRICK_TEXT_EDITOR -- version %s", BRICK_VERSION);
+                if (welcomelen > win.col) welcomelen = win.col;
+                int padding = (win.col - welcomelen) / 2;
+                if (padding) {
+                    buffer_append(bufs, "~", 1);
+                    padding--;
+                }
+                while (padding--) buffer_append(bufs, " ", 1);
+                buffer_append(bufs, welcome, welcomelen);
+                
+            }else {
+                buffer_append(bufs, "~", 1);
+            }
         }
         else
         {
-            buffer_append(bufs,win.container[y].data,win.container[y].size);
+            int len = win.container[filerow].size - win.col_off;
+	    if(len < 0)
+                len = 0;
+	    if(win.container[filerow].size > win.col) len = win.col;
+                buffer_append(bufs,&win.container[filerow].data[win.col_off],len);
         }
         
         if(y < win.row-1)
@@ -196,5 +239,7 @@ void brick_core_init(Brick brick)
     win.current_column = 0;
     win.container = NULL;
     win.data_row = 0;
+    win.row_off = 0;
+    win.col_off = 0;
     brick_open_file(&win,"./hello.txt");
 }
