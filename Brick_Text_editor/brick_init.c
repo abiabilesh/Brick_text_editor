@@ -12,11 +12,18 @@ Brick brick;
 int main(int argc, char *argv[])
 {
     int screen_thread;
+
     terminos_raw(&brick);
     get_terminos_property(&brick);
-    brick_core_init(brick);
-    screen_thread = brick_screen_init();
+    
+    if (argc == 2) 
+        brick_core_init(brick, argv[1]);
+    else{
+        printf("[brick]: Please provide a file to open\n\r");
+        return -1;	
+    }
 
+    screen_thread = brick_screen_init();
     brick_refresh_screen(); //update the screen once and let screen_thread \
                              take over from next time    
     while(1)

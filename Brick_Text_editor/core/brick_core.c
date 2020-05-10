@@ -5,9 +5,8 @@
 #include <brick_core.h>
 #include <brick_file_init.h>
 #include <brick_exit.h>
-
-
 #include <stdint.h>
+
 uint8_t screen_loop_flag = 0;
 
 #define CTRL_KEY(k) (k & 0x1f)
@@ -21,7 +20,8 @@ enum editorkey{
     ARROW_RIGHT,
     ARROW_PG_UP,
     ARROW_PG_DOWN,
-    ARROW_HOME
+    ARROW_HOME,
+    ARROW_END
 };
 
 int brick_read_key(void)
@@ -55,6 +55,7 @@ int brick_read_key(void)
                     {
                         case '1':
                         case '7':return ARROW_HOME;
+		    	case '4':return ARROW_END;
                         case '5':return ARROW_PG_UP;
                         case '6':return ARROW_PG_DOWN;
                     }
@@ -101,11 +102,19 @@ void brick_core_move(int arrow_movement)
         case ARROW_LEFT:
             if(win.current_column != 0)
                 win.current_column--;
+	    else if(win.current_row != 0){
+	    	win.current_row--;
+		win.current_column = win.container[win.current_row].size;
+            }
             break;
             
         case ARROW_RIGHT:
-            if(row && win.current_column < row->size)
+            if(row && win.current_column < row->size -1)
                 win.current_column++;
+ 	    else if(win.current_column == row->size -1 || win.current_column == row->size){
+		win.current_row++;
+		win.current_column = 0;
+	    }
             break;
     }    
     
@@ -138,10 +147,14 @@ void brick_core_inloop(void)
             break;
             
         case ARROW_HOME:
-            win.current_row = 0;
             win.current_column = 0;
             break;
-        
+       
+	case ARROW_END:
+	    if(win.current_column < win.container[win.current_row].size -1)
+	    win.current_column = win.container[win.current_row].size - 1;
+	    break;
+ 
         case ARROW_PG_UP:
         case ARROW_PG_DOWN:
             while(tmp_rows)
@@ -171,6 +184,34 @@ void editor_scroll_row(void)
 	win.col_off = win.current_column;
 }
 
+void brick_status_bar(Brick_buffer *bufs)
+{
+    buffer_append(bufs, "\x1b[7m", 4);
+    char status[80], coordinates[80];
+    int len = snprintf(status,sizeof(status), "%.40s - %d lines", \
+    win.filename ? win.filename : "[No Name]", win.data_row - 1);
+    if(len > win.col) 
+        len = win.col;
+    buffer_append(bufs, status, len);
+    
+    int clen = snprintf(coordinates, sizeof(coordinates), \
+    "%d,%d       %d%%", win.current_row,win.current_column, \
+    ((win.current_row+1)*100)/win.data_row);
+
+    while(len < win.col){
+        if(win.col - len == clen){
+	    buffer_append(bufs, coordinates, clen);
+            break;
+        }
+        else{
+            buffer_append(bufs, " ", 1);
+	    len ++;
+	}
+    }
+    buffer_append(bufs, "\x1b[m", 3);
+}
+
+
 void brick_refresh_screen(void)
 {
     editor_scroll_row();
@@ -178,6 +219,7 @@ void brick_refresh_screen(void)
     buffer_append(&bufs, "\x1b[?25l", 6);     //hide the cursor
     buffer_append(&bufs, "\x1b[H", 3);        //move the cursor to start
     brick_draw_rows(&bufs);
+    brick_status_bar(&bufs);
     buffer_append(&bufs, "\x1b[H", 3);        //move the cursor to start
 
     char move[32];
@@ -224,16 +266,18 @@ void brick_draw_rows(Brick_buffer *bufs)
 	    if(win.container[filerow].size > win.col) len = win.col;
                 buffer_append(bufs,&win.container[filerow].data[win.col_off],len);
         }
-        
-        if(y < win.row-1)
+       
+        buffer_append(bufs,"\x1b[K",3); 
+        //if(y < win.row-1)
         buffer_append(bufs,"\r\n",2);
     }
 
 } 
 
-void brick_core_init(Brick brick)
+void brick_core_init(Brick brick, char *filename)
 {
     win.row = brick.brick_row;
+    win.row -= 1; //status bar 
     win.col = brick.brick_column;
     win.current_row = 0;
     win.current_column = 0;
@@ -241,5 +285,6 @@ void brick_core_init(Brick brick)
     win.data_row = 0;
     win.row_off = 0;
     win.col_off = 0;
-    brick_open_file(&win,"./hello.txt");
+    win.filename = NULL;
+    brick_open_file(&win,filename);
 }

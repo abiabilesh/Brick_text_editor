@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <brick_file_init.h>
 
+#define TAB_SPACE 8
+
 void editorAppendRow(struct brick_win_size *win,char *line, size_t linelen)
 {
     int row = win->data_row;
@@ -21,7 +23,6 @@ void editorAppendRow(struct brick_win_size *win,char *line, size_t linelen)
             
             off = off + win->col;
             tmp_len -= win->col;
-            
             win->container[row].size = win->col;
             row++;
         }
@@ -32,7 +33,6 @@ void editorAppendRow(struct brick_win_size *win,char *line, size_t linelen)
             
             char *str  = win->container[row].data;
             memcpy(str,(line+off),tmp_len);
-            
             win->container[row].size = tmp_len;
             row++;
         }
@@ -40,12 +40,11 @@ void editorAppendRow(struct brick_win_size *win,char *line, size_t linelen)
     else
     {
         win->container = realloc(win->container, sizeof(row_container) * (row+1));    
-        win->container[row].data = malloc(linelen + 1);
+        win->container[row].data = malloc(linelen);
         
         char *str  = win->container[row].data;
         memcpy(str,line,linelen);
-        str[linelen] = '\0';
-        
+      
         win->container[row].size = linelen;
         row++;
     }
@@ -68,6 +67,9 @@ int tab_counter(char *line, size_t linecap)
 
 void brick_open_file(struct brick_win_size *win,char *filename)
 {
+    free(win->filename);
+    win->filename = strdup(filename);
+
     FILE *fp = fopen(filename, "r");
     if (!fp) 
         die("fopen");
@@ -76,14 +78,14 @@ void brick_open_file(struct brick_win_size *win,char *filename)
     ssize_t linelen;
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
         
-            int tab_count;
-                tab_count = tab_counter(line, linecap);
-                char *line_mod = malloc((linecap+(tab_count*4)) * sizeof(char*));
-                int line_mod_len = 0, line_org_len = 0;
+        int tab_count;
+        tab_count = tab_counter(line, linecap);
+        char *line_mod = malloc((linecap+(tab_count*TAB_SPACE)) * sizeof(char*) + 1);
+        int line_mod_len = 0, line_org_len = 0;
   
         while(line_org_len < linelen - 1){
             if(line[line_org_len] == '\t'){
-                int tmp = line_mod_len + 4;
+                int tmp = line_mod_len + TAB_SPACE;
                 while(line_mod_len < tmp){
                     line_mod[line_mod_len] = ' ';
                     line_mod_len++;
@@ -95,11 +97,12 @@ void brick_open_file(struct brick_win_size *win,char *filename)
             }
             line_org_len++;                
         }                
-
+         
+        line_mod[line_mod_len] = '\0';
         while (line_mod_len > 0 && (line_mod[line_mod_len - 1] == '\n' || line_mod[line_mod_len - 1] == '\r'))
             line_mod_len--;
 
-        editorAppendRow(win,line_mod, line_mod_len);
+        editorAppendRow(win, line_mod, line_mod_len);
         free(line_mod);
     }
       
