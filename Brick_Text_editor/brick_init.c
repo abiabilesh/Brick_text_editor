@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <brick_init.h>
 #include <brick_core.h>
 #include <brick_termios.h>
@@ -9,10 +10,37 @@
 
 Brick brick;
 
+void brick_set_mbar(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(brick.message_bar, sizeof(brick.message_bar), fmt, ap);
+    va_end(ap);
+    brick.message_time = time(NULL);
+}
+
+
+void brick_main(Brick *brick)
+{
+    brick->brick_row = 0;
+    brick->brick_column = 0;
+    brick->message_bar[0] = '\0';
+    brick->message_time = 0;  
+    brick_mbar_init(&brick);  
+}
+
+
+void brick_mbar_init(Brick *brick)
+{
+    brick_set_mbar("HELP: Ctrl-Q = quit");
+}
+
+
 int main(int argc, char *argv[])
 {
     int screen_thread;
 
+    brick_main(&brick);
     terminos_raw(&brick);
     get_terminos_property(&brick);
     
@@ -24,8 +52,7 @@ int main(int argc, char *argv[])
     }
 
     screen_thread = brick_screen_init();
-    brick_refresh_screen(); //update the screen once and let screen_thread \
-                             take over from next time    
+    
     while(1)
     {
         brick_core_inloop();

@@ -7,7 +7,7 @@
 #include <brick_exit.h>
 #include <stdint.h>
 
-uint8_t screen_loop_flag = 0;
+//uint8_t screen_loop_flag = 0;
 
 #define CTRL_KEY(k) (k & 0x1f)
 
@@ -164,7 +164,7 @@ void brick_core_inloop(void)
             }
             break;    
     }
-    screen_loop_flag = 1; //brick screen thread will clear this bit 
+    //screen_loop_flag = 1; //brick screen thread will clear this bit 
 }
 
 void editor_scroll_row(void)
@@ -182,6 +182,21 @@ void editor_scroll_row(void)
   
     if(win.current_column < win.col_off)
 	win.col_off = win.current_column;
+}
+
+void brick_message_bar(Brick_buffer *bufs)
+{
+    char *message = win.msg_bar[0].message;
+    time_t msg_time = win.msg_bar[0].message_time;
+    
+    buffer_append(bufs,"\x1b[K", 3); //clean the current line
+    
+    int len = strlen(message);
+    if(len > win.col)
+        len = win.col;
+    
+    if(len && (time(NULL) - msg_time) < 2)
+        buffer_append(bufs, message, len); 
 }
 
 void brick_status_bar(Brick_buffer *bufs)
@@ -209,6 +224,7 @@ void brick_status_bar(Brick_buffer *bufs)
 	}
     }
     buffer_append(bufs, "\x1b[m", 3);
+    buffer_append(bufs,"\r\n",2);
 }
 
 
@@ -219,7 +235,10 @@ void brick_refresh_screen(void)
     buffer_append(&bufs, "\x1b[?25l", 6);     //hide the cursor
     buffer_append(&bufs, "\x1b[H", 3);        //move the cursor to start
     brick_draw_rows(&bufs);
+        
     brick_status_bar(&bufs);
+    brick_message_bar(&bufs);
+    
     buffer_append(&bufs, "\x1b[H", 3);        //move the cursor to start
 
     char move[32];
@@ -268,16 +287,29 @@ void brick_draw_rows(Brick_buffer *bufs)
         }
        
         buffer_append(bufs,"\x1b[K",3); 
-        //if(y < win.row-1)
         buffer_append(bufs,"\r\n",2);
     }
 
 } 
 
+void core_msgbar_init(Brick brick)
+{
+    win.msg_bar = (message_bar*) malloc(sizeof(message_bar) * 1);;
+     
+    message_bar *msg_bar = win.msg_bar;
+    char *brick_msg = brick.message_bar;
+    
+    msg_bar[0].message[0] = '\0';
+    msg_bar[0].message_time = brick.message_time;
+
+    char *win_msg = msg_bar[0].message;
+    strcpy(win_msg, brick_msg);
+}
+
 void brick_core_init(Brick brick, char *filename)
 {
     win.row = brick.brick_row;
-    win.row -= 1; //status bar 
+    win.row -= 2; //status bar and message bar 
     win.col = brick.brick_column;
     win.current_row = 0;
     win.current_column = 0;
@@ -286,5 +318,7 @@ void brick_core_init(Brick brick, char *filename)
     win.row_off = 0;
     win.col_off = 0;
     win.filename = NULL;
+    
+    core_msgbar_init(brick);
     brick_open_file(&win,filename);
 }

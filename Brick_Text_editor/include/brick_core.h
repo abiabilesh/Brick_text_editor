@@ -10,6 +10,13 @@ typedef struct row_container
    char *data;
 }row_container;
 
+
+typedef struct message_bar
+{
+   char message[80];
+   time_t message_time;
+}message_bar;
+
 struct brick_win_size
 {
    int row;
@@ -20,7 +27,9 @@ struct brick_win_size
    int row_off;
    int col_off;
    row_container *container;
-   char *filename;   
+   char *filename;
+   message_bar *msg_bar;  
+   
 };
 
 void brick_core_init(Brick brick, char *filename);
