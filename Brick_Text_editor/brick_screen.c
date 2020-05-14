@@ -6,8 +6,6 @@
 #include "brick_screen.h"
 
 //extern uint8_t screen_loop_flag;
-
-#define REFRESH_120FPS
  
 void *myThreadFun(void *vargp) 
 { 
