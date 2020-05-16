@@ -163,6 +163,8 @@ void brick_core_inloop(void)
                 (c == ARROW_PG_UP) ? brick_core_move(ARROW_UP) : brick_core_move(ARROW_DOWN);
             }
             break;    
+    	default:
+            container_insert_character(&win, c);
     }
     //screen_loop_flag = 1; //brick screen thread will clear this bit 
 }
@@ -195,7 +197,7 @@ void brick_message_bar(Brick_buffer *bufs)
     if(len > win.col)
         len = win.col;
     
-    if(len && (time(NULL) - msg_time) < 2)
+    if(len && (time(NULL) - msg_time) < 5)
         buffer_append(bufs, message, len); 
 }
 

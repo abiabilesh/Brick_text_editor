@@ -6,7 +6,7 @@
 #include "brick_screen.h"
 
 //extern uint8_t screen_loop_flag;
- 
+
 void *myThreadFun(void *vargp) 
 { 
     while(1){

@@ -32,7 +32,7 @@ void brick_main(Brick *brick)
 
 void brick_mbar_init(Brick *brick)
 {
-    brick_set_mbar("HELP: Ctrl-Q = quit");
+    brick_set_mbar("HELP: CTRL+Q = QUIT");
 }
 
 
