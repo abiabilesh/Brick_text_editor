@@ -14,6 +14,8 @@
 struct brick_win_size win;
 
 enum editorkey{
+    BACKSPACE = 127,
+    DEL_KEY,
     ARROW_UP = 1000,
     ARROW_DOWN,
     ARROW_LEFT,
@@ -104,17 +106,19 @@ void brick_core_move(int arrow_movement)
                 win.current_column--;
 	    else if(win.current_row != 0){
 	    	win.current_row--;
-		win.current_column = win.container[win.current_row].size;
+		win.current_column = win.container[win.current_row].size - 1;
             }
             break;
             
         case ARROW_RIGHT:
-            if(row && win.current_column < row->size -1)
-                win.current_column++;
- 	    else if(win.current_column == row->size -1 || win.current_column == row->size){
-		win.current_row++;
-		win.current_column = 0;
-	    }
+            if(win.current_row != win.data_row){
+                if(row && win.current_column < row->size - 1)
+                    win.current_column++;
+ 	        else if(win.current_column == row->size - 1){
+                    win.current_row++;
+		    win.current_column = 0;
+	        }
+            }
             break;
     }    
     
@@ -133,6 +137,14 @@ void brick_core_inloop(void)
     c = brick_read_key();
     switch(c)
     {
+	case CTRL_KEY('l'):
+	    /* TODO */
+	    break;
+
+        case CTRL_KEY('h'):
+            /* TODO */
+            break;
+
         case CTRL_KEY('q'):
             write(STDOUT_FILENO, "\x1b[2J", 4);
             write(STDOUT_FILENO, "\x1b[H", 3);
@@ -162,7 +174,17 @@ void brick_core_inloop(void)
                 tmp_rows--;
                 (c == ARROW_PG_UP) ? brick_core_move(ARROW_UP) : brick_core_move(ARROW_DOWN);
             }
-            break;    
+            break; 
+      
+        case BACKSPACE:
+	case DEL_KEY:   
+            /* TODO */
+  	    break;
+ 
+        case '\r':
+	    /* TODO */
+            break;
+
     	default:
             container_insert_character(&win, c);
     }
@@ -284,8 +306,9 @@ void brick_draw_rows(Brick_buffer *bufs)
             int len = win.container[filerow].size - win.col_off;
 	    if(len < 0)
                 len = 0;
-	    if(win.container[filerow].size > win.col) len = win.col;
-                buffer_append(bufs,&win.container[filerow].data[win.col_off],len);
+	    //if(win.container[filerow].size > win.col) len = win.col;
+	    if(len  > win.col) len = win.col;
+            buffer_append(bufs,&win.container[filerow].data[win.col_off],len);
         }
        
         buffer_append(bufs,"\x1b[K",3); 

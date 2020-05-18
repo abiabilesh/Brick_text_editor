@@ -7,6 +7,8 @@
 
 //extern uint8_t screen_loop_flag;
 
+//#define REFRESH_360FPS
+
 void *myThreadFun(void *vargp) 
 { 
     while(1){
@@ -19,7 +21,7 @@ void *myThreadFun(void *vargp)
 #elif defined(REFRESH_360FPS)
 	usleep(2000);  //refreshing @360fps
 #else 
-        usleep(33000); //refreshing @30fps
+        usleep(63000); //refreshing @30fps
 #endif    
 
     }

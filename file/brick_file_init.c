@@ -5,7 +5,7 @@
 
 #define TAB_SPACE 8
 
-void editorAppendRow(struct brick_win_size *win,char *line, size_t linelen)
+void container_fill_row(struct brick_win_size *win,char *line, size_t linelen)
 {
     int row = win->data_row;
     
@@ -102,7 +102,7 @@ void brick_open_file(struct brick_win_size *win,char *filename)
         while (line_mod_len > 0 && (line_mod[line_mod_len - 1] == '\n' || line_mod[line_mod_len - 1] == '\r'))
             line_mod_len--;
 
-        editorAppendRow(win, line_mod, line_mod_len);
+        container_fill_row(win, line_mod, line_mod_len);
         free(line_mod);
     }
       
