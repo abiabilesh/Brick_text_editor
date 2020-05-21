@@ -23,8 +23,7 @@ CORE_DIR_OBJ = $(patsubst $(CORE_DIR)/%.c,$(CORE_DIR)/%.o,$(wildcard $(CORE_DIR)
 CORE_FILE_DIR = ./file
 CORE_FILE_DIR_OBJ = $(patsubst $(CORE_FILE_DIR)/%.c,$(CORE_FILE_DIR)/%.o,$(wildcard $(CORE_FILE_DIR)/*.c))
 
-
-Bricks:MAKEDIR $(ROOT_DIR_OBJ) $(CORE_DIR_OBJ) $(CORE_FILE_DIR_OBJ) $(SYS_DIR_OBJ) 
+Bricks:MAKEDIR  $(CORE_FILE_DIR_OBJ) $(SYS_DIR_OBJ) $(CORE_DIR_OBJ) $(ROOT_DIR_OBJ)
 	$(CC) $(OUTPUT)/*.o $(OUTPUT)/core/*.o $(OUTPUT)/file/*.o $(OUTPUT)/system/*.o -lpthread -o $(OUTPUT)/$(EXECUTABLE)
 
 	
@@ -33,10 +32,12 @@ MAKEDIR:
 	mkdir -p $(OUTPUT)/system
 	mkdir -p $(OUTPUT)/file
 
-$(CORE_DIR)/%.o: $(CORE_DIR)/%.c
+$(CORE_DIR)/%.o: $(CORE_DIR)/%.c 
+	echo making core_dir
 	$(CC) -g -I $(INCLUDE) -c $< -o $(OUTPUT)/$@  
 	
 $(CORE_FILE_DIR)/%.o: $(CORE_FILE_DIR)/%.c
+	echo making core_file_dir
 	$(CC) -g -I $(INCLUDE) -c $< -o $(OUTPUT)/$@  
 
 $(SYS_DIR)/%.o: $(SYS_DIR)/%.c

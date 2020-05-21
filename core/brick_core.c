@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <brick_buf_api.h>
 #include <brick_core.h>
-#include <brick_file_init.h>
+#include <brick_file.h>
 #include <brick_exit.h>
 #include <stdint.h>
 
@@ -150,7 +150,8 @@ void brick_core_inloop(void)
             write(STDOUT_FILENO, "\x1b[H", 3);
             exit(0);
             break;
-            
+        case CTRL_KEY('s'):
+            brick_file_save(&win);    
         case ARROW_UP:
         case ARROW_DOWN:
         case ARROW_LEFT:

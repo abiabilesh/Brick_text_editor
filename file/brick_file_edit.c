@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <brick_core.h>
+#include <brick_file.h>
 
 void container_row_change(struct brick_win_size *win, int character)
 {

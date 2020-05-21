@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
-#include <brick_file_init.h>
+#include <brick_file.h>
 
 #define TAB_SPACE 8
 

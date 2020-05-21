@@ -17,7 +17,7 @@ typedef struct message_bar
    time_t message_time;
 }message_bar;
 
-struct brick_win_size
+typedef struct brick_win_size
 {
    int row;
    int col;
@@ -30,7 +30,7 @@ struct brick_win_size
    char *filename;
    message_bar *msg_bar;  
    
-};
+}brick_window;
 
 void brick_core_init(Brick brick, char *filename);
 int brick_read_key(void);

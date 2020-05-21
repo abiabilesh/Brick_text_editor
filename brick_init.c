@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         brick_core_init(brick, argv[1]);
     else{
         printf("[brick]: Please provide a file to open\n\r");
-        return -1;	
+        return -1;        
     }
 
     screen_thread = brick_screen_init();
