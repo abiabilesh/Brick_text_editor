@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 #include <brick_buf_api.h>
 
 int buffer_append(Brick_buffer *brick, char *buf, int length)

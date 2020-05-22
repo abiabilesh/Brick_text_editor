@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
 #include <brick_core.h>

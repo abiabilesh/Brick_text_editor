@@ -1,53 +1,78 @@
+PROJECTDIR = $(CURDIR)
+TARGETDIR = $(PROJECTDIR)/build
 
-EXECUTABLE= brick
+#Naming the executable....
+EXECUTABLE = brick
+INCLUDES = $(CURDIR)/include
 
-CC= gcc
+DIR = core system file 
+#Creating a list of source directories for all the folders within the project)
+SOURCEDIR += $(CURDIR)
+SOURCEDIR += $(foreach dir, $(DIR), $(addprefix $(PROJECTDIR)/,$(dir)))
 
-CFLAGS= -c  
+#Creating a list of build directories for each of the source file within the project
+OBJECTDIR += $(TARGETDIR)
+OBJECTDIR += $(foreach dir, $(DIR), $(addprefix $(TARGETDIR)/,$(dir)))
 
-all:Bricks
 
-INCLUDE = ./include
+#Creating a list of source files from the source directories
+SOURCES += $(foreach dir, $(SOURCEDIR), $(wildcard $(dir)/*.c))
 
-OUTPUT = ./build
+#Creating a list of object files from the source files
+OBJECTS += $(subst $(PROJECTDIR), $(TARGETDIR), $(SOURCES:.c=.o))
 
-ROOT_DIR = .
-ROOT_DIR_OBJ = $(patsubst $(ROOT_DIR)/%.c,$(ROOT_DIR)/%.o,$(wildcard $(ROOT_DIR)/*.c))
+# Define dependencies files for all objects
+DEPS = $(OBJECTS:.o=.d)
 
-SYS_DIR = ./system
-SYS_DIR_OBJ = $(patsubst $(SYS_DIR)/%.c,$(SYS_DIR)/%.o,$(wildcard $(SYS_DIR)/*.c))
+#Adding compiler info and flags for the build
+CC = gcc
+RM = rm -rf 
+RMDIR = rm -rf 
+MKDIR = mkdir -p
+ERRIGNORE = 2>/dev/null
+SEP=/
 
-CORE_DIR = ./core
-CORE_DIR_OBJ = $(patsubst $(CORE_DIR)/%.c,$(CORE_DIR)/%.o,$(wildcard $(CORE_DIR)/*.c))
+CC_FLAGS = -g -Wall \
+	   -Werror=implicit-function-declaration
 
-CORE_FILE_DIR = ./file
-CORE_FILE_DIR_OBJ = $(patsubst $(CORE_FILE_DIR)/%.c,$(CORE_FILE_DIR)/%.o,$(wildcard $(CORE_FILE_DIR)/*.c))
+PTHREADS = -lpthread
+VERBOSE = TRUE
+PSEP = $(strip $(SEP))
 
-Bricks:MAKEDIR  $(CORE_FILE_DIR_OBJ) $(SYS_DIR_OBJ) $(CORE_DIR_OBJ) $(ROOT_DIR_OBJ)
-	$(CC) $(OUTPUT)/*.o $(OUTPUT)/core/*.o $(OUTPUT)/file/*.o $(OUTPUT)/system/*.o -lpthread -o $(OUTPUT)/$(EXECUTABLE)
+# Hide or not the calls depending of VERBOSE
+ifeq ($(VERBOSE),TRUE)
+    HIDE =  
+else
+    HIDE = @
+endif
 
-	
-MAKEDIR:
-	mkdir -p $(OUTPUT)/core
-	mkdir -p $(OUTPUT)/system
-	mkdir -p $(OUTPUT)/file
+define generateRules
+$(1)/%.o : %.c
+	@echo Building $$@ from $$<
+	$(HIDE)$(CC) -c $(CC_FLAGS) -I $(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<)
+endef
 
-$(CORE_DIR)/%.o: $(CORE_DIR)/%.c 
-	echo making core_dir
-	$(CC) -g -I $(INCLUDE) -c $< -o $(OUTPUT)/$@  
-	
-$(CORE_FILE_DIR)/%.o: $(CORE_FILE_DIR)/%.c
-	echo making core_file_dir
-	$(CC) -g -I $(INCLUDE) -c $< -o $(OUTPUT)/$@  
 
-$(SYS_DIR)/%.o: $(SYS_DIR)/%.c
-	$(CC) -g -I $(INCLUDE) -c $< -o $(OUTPUT)/$@  
+.PHONY: all directories clean 
 
-$(ROOT_DIR)/%.o: $(ROOT_DIR)/%.c
-	$(CC) -g -I $(INCLUDE) -c $< -o $(OUTPUT)/$@ 
+#Default rule for building the complete project
+all: directories $(EXECUTABLE)
 
+$(EXECUTABLE): $(OBJECTS) 
+	$(HIDE)echo Linking $@
+	$(HIDE) $(CC)  $(OBJECTS) -o $(TARGETDIR)/$(EXECUTABLE) $(PTHREADS)
+
+#Generating rules
+$(foreach objectdir, $(OBJECTDIR), $(eval $(call generateRules, $(objectdir))))
+
+#Remove all objects, dependencies and executable files generated during the build
 clean:
-	rm -rf $(OUTPUT)
+	@echo Cleaning the build directory as per requested...
+	$(HIDE) $(RMDIR) $(OBJECTDIR)
+	@echo Cleaning done!!
 
-
+directories:
+	@echo Creating directories for the output...
+	$(HIDE) $(MKDIR) $(OBJECTDIR)
+	@echo Done Creating build directories...
 

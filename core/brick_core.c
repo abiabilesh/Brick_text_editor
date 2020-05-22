@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <brick_buf_api.h>
 #include <brick_core.h>
 #include <brick_file.h>
 #include <brick_exit.h>
-#include <stdint.h>
 
 //uint8_t screen_loop_flag = 0;
 
@@ -152,6 +154,7 @@ void brick_core_inloop(void)
             break;
         case CTRL_KEY('s'):
             brick_file_save(&win);    
+            break;
         case ARROW_UP:
         case ARROW_DOWN:
         case ARROW_LEFT:

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <brick_core.h>
@@ -58,3 +59,5 @@ void container_insert_character(struct brick_win_size *win, int character)
     else 
         container_add_row(win,"",0);
 }
+
+

@@ -3,6 +3,7 @@
 
 #define BRICK_VERSION "0.1"
 #include <brick_init.h>
+#include <brick_buf_api.h>
 
 typedef struct row_container
 {
@@ -28,13 +29,13 @@ typedef struct brick_win_size
    int col_off;
    row_container *container;
    char *filename;
-   message_bar *msg_bar;  
-   
+   message_bar *msg_bar;     
 }brick_window;
 
 void brick_core_init(Brick brick, char *filename);
 int brick_read_key(void);
 void brick_core_inloop(void);
 void brick_clear_screen(void);
-
+void brick_refresh_screen();
+void brick_draw_rows(Brick_buffer *bufs);
 #endif

@@ -1,3 +1,6 @@
+#ifndef brick_buf_api
+#define brick_buf_api
+
 #define BUF_INIT {NULL,0};
 
 typedef struct Brick_buffer
@@ -9,3 +12,5 @@ typedef struct Brick_buffer
 
 int buffer_append(Brick_buffer *brick, char *buf, int length);
 int buffer_free(Brick_buffer *buffer);
+
+#endif

@@ -13,6 +13,9 @@ typedef struct Brick
 	time_t message_time;
 }Brick;
 
+void brick_main(Brick *brick);
+void brick_mbar_init(Brick *brick);
+void brick_set_mbar(const char *fmt, ...);
 
 #endif
 

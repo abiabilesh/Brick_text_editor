@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <pthread.h>
 #include <brick_init.h>
 #include <brick_core.h>
 #include <brick_termios.h>
@@ -18,7 +19,6 @@ void brick_set_mbar(const char *fmt, ...)
     va_end(ap);
     brick.message_time = time(NULL);
 }
-
 
 void brick_main(Brick *brick)
 {

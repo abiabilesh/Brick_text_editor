@@ -2,6 +2,8 @@
 #include <stdlib.h> 
 #include <pthread.h> 
 #include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <brick_core.h>
 #include "brick_screen.h"
 

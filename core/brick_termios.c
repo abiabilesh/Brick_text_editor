@@ -2,8 +2,10 @@
 #include <unistd.h>
 #include <termios.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <brick_init.h>
 #include <brick_termios.h>
+#include <brick_sys.h>
 #include <brick_exit.h>
 
 extern Brick brick;
