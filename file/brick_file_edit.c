@@ -130,7 +130,7 @@ void process_delete_key_eof(row_container *container, int row, int col, int data
     
     }
     else if(col == 0 && row > 0){
-    
+        //Delete the container since it is empty with a null terminator    
         free(container[row].data);
         container[row].size = NULL;
         //win->container = realloc(win->container, sizeof(row_container) * (win->data_row -1)); ?????
