@@ -70,7 +70,7 @@ void process_delete_key_line_append(row_container *container, int row, int col, 
     if(container[row].size  == 1){  //just a null terminator          
         
         //check whether the next line is empty
-        if(container[row + 1].size == 0){
+        if(container[row + 1].size == 1){
             goto process_delete_next_line; 
         }
         else{
