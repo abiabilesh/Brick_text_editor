@@ -11,7 +11,10 @@
 void container_fill_row(struct brick_win_size *win,char *line, size_t linelen)
 {
     int row = win->data_row;
-    
+
+    /***************************************************************************************
+                            The below if loop has to be evaluated
+    ****************************************************************************************/
     if(linelen > win->col)
     {
         int off = 0;
@@ -32,23 +35,24 @@ void container_fill_row(struct brick_win_size *win,char *line, size_t linelen)
         if(tmp_len > 0)
         {
             win->container = realloc(win->container, sizeof(row_container) * (row+1));
-            win->container[row].data = malloc(tmp_len);
+            win->container[row].data = (char *) malloc((tmp_len + 1) * sizeof(char*));
             
             char *str  = win->container[row].data;
-            memcpy(str,(line+off),tmp_len);
-            win->container[row].size = tmp_len;
+            memcpy(str,(line+off),tmp_len + 1);
+            win->container[row].size = tmp_len + 1;
             row++;
         }
     }
     else
     {
         win->container = realloc(win->container, sizeof(row_container) * (row+1));    
-        win->container[row].data = malloc(linelen);
+        win->container[row].data = (char*) malloc((linelen + 1) * sizeof(char*));
         
         char *str  = win->container[row].data;
-        memcpy(str,line,linelen);
-      
-        win->container[row].size = linelen;
+        
+         // line_mode_len => 0,1,.......,19  but the linelen is size which is 20 for the same.
+        memcpy(str,line,linelen + 1); 
+        win->container[row].size = linelen + 1;
         row++;
     }
     
@@ -58,13 +62,15 @@ void container_fill_row(struct brick_win_size *win,char *line, size_t linelen)
 
 int tab_counter(char *line, size_t linecap) 
 {
+
     int off = linecap - 1;
-        int tab_cnt = 0;
+    int tab_cnt = 0;
     while(off){
                 if(line[off] == '\t')
                 tab_cnt++; 
         off--;
     }
+
     return tab_cnt;
 }
 
@@ -80,10 +86,11 @@ void brick_open_file(struct brick_win_size *win,char *filename)
     size_t linecap = 0;
     ssize_t linelen;
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
-        
+
         int tab_count;
-        tab_count = tab_counter(line, linecap);
-        char *line_mod = malloc((linecap+(tab_count*TAB_SPACE)) * sizeof(char*) + 1);
+        tab_count = tab_counter(line, linelen);
+        char *line_mod = (char*) malloc((linelen +(tab_count * TAB_SPACE)) * sizeof(char*));
+
         int line_mod_len = 0, line_org_len = 0;
   
         while(line_org_len < linelen - 1){
@@ -100,15 +107,19 @@ void brick_open_file(struct brick_win_size *win,char *filename)
             }
             line_org_len++;                
         }                
-         
+
+        // line_mode_len => 0,1,.......,19  but the linelen is size which is 20 for the same.
+
         line_mod[line_mod_len] = '\0';
+        
         while (line_mod_len > 0 && (line_mod[line_mod_len - 1] == '\n' || line_mod[line_mod_len - 1] == '\r'))
             line_mod_len--;
-
+       
         container_fill_row(win, line_mod, line_mod_len);
         free(line_mod);
+
     }
-      
+    
     free(line);
     fclose(fp);
 }

@@ -57,6 +57,7 @@ int brick_read_key(void)
                 {
                     switch(str[1])
                     {
+			case '3':return DEL_KEY;
                         case '1':
                         case '7':return ARROW_HOME;
 		    	case '4':return ARROW_END;
@@ -96,19 +97,23 @@ void brick_core_move(int arrow_movement)
         case ARROW_UP:
             if(win.current_row != 0)
                 win.current_row--;
+            if(win.current_column > win.container[win.current_row].size)
+                win.current_column = win.container[win.current_row].size - 1;
             break;
             
         case ARROW_DOWN:
-	    if(win.current_row < win.data_row)
-		win.current_row++;
+	        if(win.current_row < win.data_row)
+		        win.current_row++;
             break;
             
         case ARROW_LEFT:
-            if(win.current_column != 0)
+            if(win.current_column > 0)
                 win.current_column--;
-	    else if(win.current_row != 0){
-	    	win.current_row--;
-		win.current_column = win.container[win.current_row].size - 1;
+	        else if(win.current_row != 0){
+	    	    win.current_row--;
+		        if(win.container[win.current_row].size != 0){
+                    win.current_column = win.container[win.current_row].size - 1;
+                }
             }
             break;
             
@@ -181,8 +186,9 @@ void brick_core_inloop(void)
             break; 
       
         case BACKSPACE:
-	case DEL_KEY:   
-            /* TODO */
+            break;
+	    case DEL_KEY:   
+            process_delete_key(&win);
   	    break;
  
         case '\r':
@@ -318,7 +324,6 @@ void brick_draw_rows(Brick_buffer *bufs)
         buffer_append(bufs,"\x1b[K",3); 
         buffer_append(bufs,"\r\n",2);
     }
-
 } 
 
 void core_msgbar_init(Brick brick)
