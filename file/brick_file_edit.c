@@ -61,8 +61,9 @@ void container_insert_character(struct brick_win_size *win, int character)
         container_add_row(win,"",0);
 }
 
-void process_delete_key_line_append(row_container *container, int row, int col, int data_row)
+row_container* process_delete_key_line_append(row_container *container, int row, int col, int data_row)
 {
+    row_container *temp;
     char *data = container[row].data;
 
     //check if the current line is empty
@@ -70,17 +71,15 @@ void process_delete_key_line_append(row_container *container, int row, int col, 
     if(container[row].size  == 1){  //just a null terminator          
         
         //check whether the next line is empty
-        if(container[row + 1].size == 1){
+        if(container[row + 1].size == 0){
             goto process_delete_next_line; 
         }
         else{
             
             char *next_data = container[row + 1].data;
-            data = (char*) realloc (data, (container[row + 1].size) * sizeof(char*));
-            memcpy(data, next_data, container[row+1].size);
-            container[row].data = data;
+            container[row].data = next_data;
             container[row].size = container[row+1].size;
-
+            free(data);
         }
     }
     else{
@@ -101,41 +100,52 @@ void process_delete_key_line_append(row_container *container, int row, int col, 
     
     process_delete_next_line:
         //removing the next line and patching the containers
-        
-        for(int index = row + 1; index < data_row - 1; index++ )
+        temp = malloc (sizeof(row_container) * (data_row -1));
+
+        for(int index = 0; index <= row; index++)
         {
-            container[index] = container[index + 1];
+            temp[index] = container[index];
         }
 
-        container = realloc (container, sizeof(row_container) * (data_row -1));
-        
+        for(int index = row + 1; index < data_row - 1; index++ )
+        {
+            temp[index] = container[index + 1];
+        }
+
+        free(container);
+        return temp;
 
 }
 
-void process_delete_key_eof(row_container *container, int row, int col, int data_row)
+row_container* process_delete_key_eof(row_container *container, int row, int col, int data_row)
 {
+    row_container *temp;
     char *data = container[row].data;
 
     //Check whether should we delete inline leftwards
 
     if(col >0 && (row < data_row)){
         
-        data = (char*) realloc (data, ((container[row].size) - 1) * sizeof(char*));
-        memcpy(data,data,(container[row].size) - 1);
-        data[container[row].size - 2] = '\0';
-        free(data[container[row].size - 1]);
-        
-        container[row].data = data;
-        container[row].size = strlen(data) + 1; //to include the null terminator
+        temp = container;
+        char *new_string = (char*) malloc(((temp[row].size) - 1) * sizeof(char*));
+        memcpy(new_string ,data,(temp[row].size) - 1);
+        new_string[temp[row].size - 2] = '\0';        
+        temp[row].data = new_string;
+        temp[row].size = strlen(new_string) + 1; //to include the null terminator
+        free(data);
     
     }
     else if(col == 0 && row > 0){
-        //Delete the container since it is empty with a null terminator    
-        free(container[row].data);
-        container[row].size = NULL;
-        //win->container = realloc(win->container, sizeof(row_container) * (win->data_row -1)); ?????
-        
+
+        temp = malloc (sizeof(row_container) * (data_row -1));
+        for(int index = 0; index < data_row - 1; index++ )
+        {
+            temp[index] = container[index];
+        }
+        free(container);
     }
+
+    return temp;
 }
 
 
@@ -157,7 +167,8 @@ void process_delete_key(struct brick_win_size *win)
     //check whether should we delete inline
     
     if((col < (container[row].size - 1)) && (row < win->data_row )){ 
-       
+        
+        free(data[container[row].size]);
         data = (char*) realloc (data, ((container[row].size) - 1) * sizeof(char*));
         memmove(&data[col], &data[col+1], container[row].size - (col + 1));
         container[row].data = data;
@@ -168,8 +179,7 @@ void process_delete_key(struct brick_win_size *win)
     
     else if((col == container[row].size - 1) && (row < win->data_row - 1)){
         
-        process_delete_key_line_append(container, row, col, win->data_row);
-
+        container = process_delete_key_line_append(container, row, col, win->data_row);
         win->container = container;
         win->data_row --;
     }
@@ -178,8 +188,8 @@ void process_delete_key(struct brick_win_size *win)
     else if(row == win->data_row - 1)
     {
 
-        process_delete_key_eof(container,row, col, win->data_row);
-
+        container = process_delete_key_eof(container,row, col, win->data_row);
+        win->container = container;
         if(col >0 && (row < win->data_row))
         {
             //Moving the cursor left
