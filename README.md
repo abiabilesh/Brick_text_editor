@@ -10,10 +10,8 @@ famous vim and its families. But on the go, some changes are planned to make thi
 
 ## Instructions to Build
 
-'''
 mkdir build
 cd build
 cmake ..
 make clean && make
-'''
 
