@@ -8,5 +8,12 @@ This repository is meant for a linux based command line text editor named "BRICK
 Brick text editor is planned to become a more or less the same conventional text editor as you see in the linux world!!! Just like the ever
 famous vim and its families. But on the go, some changes are planned to make this Brick a unique and a cross platform tool with colorful and efficient ideas. 
 
-##Contents##
-* [Building Brick text editor](#brick-text-editor)
+## Instructions to Build
+
+'''
+mkdir build
+cd build
+cmake ..
+make clean && make
+'''
+
