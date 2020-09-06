@@ -3,11 +3,10 @@
 #include <termios.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <sys/ioctl.h>
-#include "termios_manager.h"
+#include <termios_manager.h>
 
-termios_manager *termios_mgr; //termios manager global structure
+ //termios manager global structure
 
 /*
  * Function: termios_get_window_fallback 
@@ -113,14 +112,15 @@ int get_window_size(int *rows, int *cols)
  * text editor mode
  *
  * original_termios: Requires the original termios structure \
- * for setting raw mode 
+ * for setting raw mode
+ * is_termios_raw: sets the status of the terminal 
  *
  * returns: returns newly modified struct termios* on success \
  * if not NULL on error
  * 
  */
 
-struct termios* set_termios_raw(struct termios original_termios)
+struct termios* set_termios_raw(struct termios original_termios, bool *is_termios_raw)
 {
     int ret = 0;
     struct termios modified_termios;
@@ -138,7 +138,7 @@ struct termios* set_termios_raw(struct termios original_termios)
         return NULL;
     }
 
-    termios_mgr->is_termios_raw = true;
+    *is_termios_raw = true;
 
     return &modified_termios;    
 }
@@ -151,21 +151,22 @@ struct termios* set_termios_raw(struct termios original_termios)
  *
  * original_termios: Requires the original termios structure \
  * for setting the termios mode
- *
+ * is_termios_raw: sets the status of the terminal 
+ * 
  * returns: returns -1 on error (if malloc fails) \
  * or 0 on success
  * 
  */
 
-int set_termios_original(struct termios original_termios)
+int set_termios_original(struct termios original_termios, bool *is_termios_raw)
 {
     int ret = 0;
 
     ret = tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios);
-    termios_mgr->is_termios_raw = false;
+    *is_termios_raw = false;
     
     if(ret < 0){
-        termios_mgr->is_termios_raw = true;
+        *is_termios_raw = true;
         //have to add debug api's
     }
     
@@ -178,47 +179,62 @@ int set_termios_original(struct termios original_termios)
  * --------------------
  * Intializes the global Termios_manager structure
  *
- * void and does not require any arguments 
+ * termios_manager* the termios manager structure to be 
+ * filled with  
  *
  * returns: returns -1 on error (if malloc fails) \
  * or 0 on success
  * 
  */
 
-int termios_manager_init(void)
+int termios_manager_init(termios_manager *termios_mgr)
 {
     int ret = 0;
-    termios_manager *mgr;
-    termios_functions *fn;
-    termios_ioctl_functions *ioc_fn;
+    termios_manager *manager;
+    termios_functions *function;
+    termios_ioctl_functions *ioctl_function;
+    termios_interface *interface;
 
-    mgr = (termios_manager*) malloc(sizeof(termios_manager));
-    if(mgr == NULL){
+    manager = (termios_manager*) malloc(sizeof(termios_manager));
+    if(manager == NULL){
         //have to add debug api's      
         goto termios_manager_init_fail;
     }
 
-    fn = (termios_functions*)malloc(sizeof(termios_functions));
-    if(fn == NULL){
+    function = (termios_functions*)malloc(sizeof(termios_functions));
+    if(function == NULL){
         //have to add debug api's  
         goto termios_manager_init_fail;
     }
 
-    fn->set_termios_raw      = &set_termios_raw;
-    fn->set_termios_original = &set_termios_original;
+    function->set_termios_raw      = &set_termios_raw;
+    function->set_termios_original = &set_termios_original;
 
-    ioc_fn = (termios_ioctl_functions*)malloc(sizeof (termios_ioctl_functions));
-    if(ioc_fn == NULL){
+    ioctl_function = (termios_ioctl_functions*)malloc(sizeof (termios_ioctl_functions));
+    if(ioctl_function == NULL){
         //have to add debug api's
         goto termios_manager_init_fail;
     }
 
-    ioc_fn->get_window_size = &get_window_size;
+    ioctl_function->get_window_size = &get_window_size;
+    function->termios_ioctl_fn = ioctl_function;
 
-    fn->termios_ioctl_fn = ioc_fn;
-
-    mgr->termios_func = fn;
-    termios_mgr = mgr;          //Filling the global termios manager structure
+    manager->termios_func = function;
+    
+    interface = (termios_interface*) malloc(sizeof(termios_interface));
+    if(interface == NULL){
+        //have to add debug api's
+        goto termios_manager_init_fail;
+    }
+    
+    manager->termios_intf = interface;  //Intializing the interface of termios manager
+    ret = termios_interface_init(manager);
+    if(ret == 0){
+        //have to add debug api's
+        goto termios_manager_init_fail;
+    }
+    
+    termios_mgr = manager;          //Filling the termios manager structure
 
     //have to add debug api's
     return ret;
@@ -234,23 +250,26 @@ termios_manager_init_fail:
  * --------------------
  * Free's the global Termios_manager structure
  *
- * void and does not require any arguments 
+ * termios_manager* structure to be freed
  *
  * returns: returns -1 on error (if malloc fails)
  */
 
-int termios_manager_exit(void)
+int termios_manager_exit(termios_manager *termios_mgr)
 {
     int ret = 0;
 
-    termios_manager *mgr                = termios_mgr;
-    termios_functions *fn               = termios_mgr->termios_func;
-    termios_ioctl_functions *ioc_fn     = fn->termios_ioctl_fn;
+    termios_manager *manager                    = termios_mgr;
+    termios_functions *function                 = termios_mgr->termios_func;
+    termios_ioctl_functions *ioctl_function     = function->termios_ioctl_fn;
+    termios_interface *interface                = termios_mgr->termios_intf;
 
-    free(ioc_fn);
-    free(fn);
-    free(mgr);
+    free(ioctl_function);
+    free(function);
+    
+    ret = termios_interface_exit(interface);
 
+    free(manager);
     //have to add debug api's
     return ret;
 }
