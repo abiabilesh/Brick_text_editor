@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <termios.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>

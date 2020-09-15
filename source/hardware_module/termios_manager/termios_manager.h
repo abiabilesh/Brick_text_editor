@@ -7,6 +7,7 @@ typedef struct termios_manager termios_manager;
 
 
 #include <stdbool.h>
+#include <termios.h>
 #include <termios_interface.h>
 
 struct termios_ioctl_functions

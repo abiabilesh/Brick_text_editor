@@ -42,6 +42,7 @@ int file_manager_init(file_manager *file_mgr)
     manager->container = container;
 
     file_mgr = manager;     //Intializing the file manager structure
+    return ret;
 
 file_manager_init_fail:
     ret = -1;   
